@@ -129,6 +129,16 @@ CEOP
           ENDDO
         ENDDO
        ENDDO
+#ifdef PHYTO_SELF_SHADING
+c  Specify co-efficients for bio-optical model {kChl = k0 +chi[chl]^e}
+c  in red and blue-green fractions (Morel 1988; Foujols et al. 2000)
+       k0_rd  = 0.225 _d 0
+       k0_bg  = 0.0232 _d 0
+       chi_rd = 0.037 _d 0
+       chi_bg = 0.074 _d 0
+       e_rd   = 0.629 _d 0
+       e_bg   = 0.674 _d 0
+#endif
 
 c ---------------------------------------------------------------------
 c  Surface insolation
@@ -203,8 +213,12 @@ c  instantaneous light, mixed layer averaged light
        DO j=jmin,jmax
         DO i=imin,imax
 
-c  Photosynthetically-available radiations (PAR)
+         IF ( maskC(i,j,k,bi,bj).EQ.oneRS ) THEN
+
+C Top layer
         IF ( k.EQ.1) THEN
+
+c  Photosynthetically-available radiations (PAR)
 #ifdef USE_QSW
          irr_surf(i,j) = max(epsln,
      &                 -parfrac*Qsw(i,j,bi,bj)*maskC(i,j,1,bi,bj))
@@ -249,23 +263,12 @@ CADJ STORE irr_rd = comlev1_bibj, key=tkey, kind=isbyte
 # endif /* ALLOW_AUTODIFF_TAMC */
 #endif /* PHYTO_SELF_SHADING */
 
-         IF ( maskC(i,j,k,bi,bj).EQ.oneRS ) THEN
 #ifdef PHYTO_SELF_SHADING
-
 c  Use bio-optical model of Manizza et al. (2005) to account for
 c  effect of self-shading on ligt available for phytoplankton
 c  growth. As written this DOES NOT feedback onto the absorption
 c  of shortwave radiation calculated in the physical model, which
 c  is instead calculated in the subroutine swfrac
-
-c  Specify co-efficients for bio-optical model {kChl = k0 +chi[chl]^e}
-c  in red and blue-green fractions (Morel 1988; Foujols et al. 2000)
-        k0_rd  = 0.225 _d 0
-        k0_bg  = 0.0232 _d 0
-        chi_rd = 0.037 _d 0
-        chi_bg = 0.074 _d 0
-        e_rd   = 0.629 _d 0
-        e_bg   = 0.674 _d 0
 
 c  Attenuation coefficient adjusted to chlorophyll in top layer
           kChl_rd(i,j,1) = k0_rd + chi_rd*(chl(i,j,1,bi,bj)**e_rd)
@@ -285,7 +288,7 @@ c  Light attenuation in middle of top layer
 
 #endif /* if BLING_USE_SHADING */
 
-C If k>1
+C k>1: below surface layer
          ELSE
 
 #ifdef PHYTO_SELF_SHADING
@@ -301,7 +304,6 @@ c  Irradiance in middle of layer k
           irr_rd(i,j,k) = irr_rd(i,j,k-1)*exp(-atten_rd)
           irr_bg(i,j,k) = irr_bg(i,j,k-1)*exp(-atten_bg)
           irr_inst(i,j,k) = irr_rd(i,j,k) + irr_bg(i,j,k)
-         ENDIF
 
 #else
 C SW radiation attenuated exponentially
@@ -312,6 +314,8 @@ c  Attenuation from one more layer
      &           irr_inst(i,j,k-1)*exp(-atten)
 
 #endif /* if BLING_USE_SHADING */
+
+        ENDIF /* if k.EQ.1 */
 
 C Satellite chl
          IF (irr_surf(i,j).gt.0) THEN
