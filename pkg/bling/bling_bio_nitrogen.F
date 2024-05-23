@@ -313,12 +313,6 @@ C
       _RL phy_adj(1-OLx:sNx+OLx,1-OLy:sNy+OLy,Nr)
 #endif
 #ifdef SIZE_DEP_LIM
-      _RL k_NO3_sm
-      _RL k_NO3_lg
-      _RL k_PO4_sm
-      _RL k_PO4_lg
-      _RL k_Fe_sm
-      _RL k_Fe_lg
       _RL light_lim_sm(1-OLx:sNx+OLx,1-OLy:sNy+OLy,Nr)
       _RL light_lim_lg(1-OLx:sNx+OLx,1-OLy:sNy+OLy,Nr)
       _RL NO3_lim_sm(1-OLx:sNx+OLx,1-OLy:sNy+OLy,Nr)
@@ -603,29 +597,6 @@ C  timescale is set by gamma_irr_mem.
        ENDDO
       ENDDO
 
-C     some constants (should be runtime parameters)
-CAV Darwin (uM)
-C kPO4: sm/lg 2.4e-2 4.5e-2
-C kNO3: 0.4, 0.73
-C kSi: 0, 2
-C kFe: 3e-5, 5.6e-5
-
-CAV Topaz (mol/kg)
-C kPO4: 2e-7, 6e-7
-C kNO3: 2e-6, 6e-6
-C kFe: 3e-9, 9e-9
-
-CAV BLING (mol/kg)
-C kPO4: 1e-8
-C kNO3: 2e-6
-C kFe: 1.6e-10
-      k_NO3_sm = 2.0 _d -6 / permil
-      k_NO3_lg = 6.0 _d -6 / permil
-      k_PO4_sm = 1.0 _d -8 / permil
-      k_PO4_lg = 3.0 _d -8 / permil
-      k_Fe_sm = 1.6 _d -10 / permil
-      k_Fe_lg = 4.8 _d -10 / permil
-
 C  Nutrient uptake and partitioning between organic pools
 
       DO k=1,Nr
@@ -662,6 +633,7 @@ C  Iron limitation
           Si_lim(i,j,k) = PTR_Si(i,j,k)/(PTR_Si(i,j,k)+k_Si)
 #endif
 
+#ifdef SIZE_DEP_LIM
           NO3_lim_sm(i,j,k) = PTR_NO3(i,j,k)/(PTR_NO3(i,j,k)+k_NO3_sm)
 
           PO4_lim_sm(i,j,k) = PTR_PO4(i,j,k)/(PTR_PO4(i,j,k)+k_PO4_sm)
@@ -673,6 +645,7 @@ C  Iron limitation
           PO4_lim_lg(i,j,k) = PTR_PO4(i,j,k)/(PTR_PO4(i,j,k)+k_PO4_lg)
 
           Fe_lim_lg(i,j,k) = PTR_FE(i,j,k)/(PTR_FE(i,j,k)+k_Fe_lg)
+#endif
 C  NB The temperature function of Eppley (1972) is used to represent the
 C  effects of temperature on uptake, synthesis and ecosystem function.
 C  The reference value is 0 C. Note that this differs slightly from the

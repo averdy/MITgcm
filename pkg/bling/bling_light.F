@@ -76,8 +76,8 @@ C     === Local variables ===
       _RL irr_surf  (1-OLx:sNx+OLx,1-OLy:sNy+OLy)
 #ifdef ML_MEAN_LIGHT
       _RL irr_mix   (1-OLx:sNx+OLx,1-OLy:sNy+OLy)
-      _RL SumMLIrr
-      _RL tmp_ML
+      _RL SumMLIrr  (1-OLx:sNx+OLx,1-OLy:sNy+OLy)
+      _RL tmp_ML    (1-OLx:sNx+OLx,1-OLy:sNy+OLy)
 #endif
 #ifndef USE_QSW
       _RL solar, albedo
@@ -198,32 +198,35 @@ c mydate is utc time
 c ---------------------------------------------------------------------
 c  instantaneous light, mixed layer averaged light
 
-      DO j=jmin,jmax
-       DO i=imin,imax
+      DO k=1,Nr
+
+       DO j=jmin,jmax
+        DO i=imin,imax
 
 c  Photosynthetically-available radiations (PAR)
+        IF ( k.EQ.1) THEN
 #ifdef USE_QSW
-        irr_surf(i,j) = max(epsln,
+         irr_surf(i,j) = max(epsln,
      &                 -parfrac*Qsw(i,j,bi,bj)*maskC(i,j,1,bi,bj))
 #else
-        irr_surf(i,j) = sfac(j)
+         irr_surf(i,j) = sfac(j)
 #endif
 
 c  Remove light under ice
 c  If using Qsw and seaice/thsice, then ice fraction is already
 c  taken into account
-        QSW_underice = .FALSE.
+         QSW_underice = .FALSE.
 #ifdef USE_QSW
-        IF ( useSEAICE ) QSW_underice = .TRUE.
-        IF ( useThSIce ) QSW_underice = .TRUE.
+         IF ( useSEAICE ) QSW_underice = .TRUE.
+         IF ( useThSIce ) QSW_underice = .TRUE.
 #endif
-        IF ( .NOT. QSW_underice ) THEN
-         irr_surf(i,j) = irr_surf(i,j)*(1. _d 0 - FIce(i,j,bi,bj))
-        ENDIF
+         IF ( .NOT. QSW_underice ) THEN
+          irr_surf(i,j) = irr_surf(i,j)*(1. _d 0 - FIce(i,j,bi,bj))
+         ENDIF
 
 #ifdef ML_MEAN_LIGHT
-        SumMLIrr   = 0. _d 0
-        tmp_ML     = 0. _d 0
+         SumMLIrr(i,j) = 0. _d 0
+         tmp_ML(i,j)   = 0. _d 0
 #endif
 
 C Satellite chlorophyll
@@ -238,8 +241,6 @@ C       for other grid (e.g., cartesian), assumes no difference in time
         localTime = MOD( localTime, 24. _d 0 )
         chl_sat_sum = 0. _d 0
         sat_atten_sum = 0. _d 0
-
-        DO k=1,Nr
 
 #ifdef PHYTO_SELF_SHADING
 # ifdef ALLOW_AUTODIFF_TAMC
@@ -266,7 +267,6 @@ c  in red and blue-green fractions (Morel 1988; Foujols et al. 2000)
         e_rd   = 0.629 _d 0
         e_bg   = 0.674 _d 0
 
-         IF (k.eq.1) THEN
 c  Attenuation coefficient adjusted to chlorophyll in top layer
           kChl_rd(i,j,1) = k0_rd + chi_rd*(chl(i,j,1,bi,bj)**e_rd)
           kChl_bg(i,j,1) = k0_bg + chi_bg*(chl(i,j,1,bi,bj)**e_bg)
@@ -277,8 +277,18 @@ c  Irradiance in middle of top layer
           irr_rd(i,j,1) = irr_surf(i,j) * exp(-atten_rd) * 0.5 _d 0
           irr_bg(i,j,1) = irr_surf(i,j) * exp(-atten_bg) * 0.5 _d 0
           irr_inst(i,j,1) = irr_rd(i,j,1) + irr_bg(i,j,1)
+#else
+C SW radiation attenuated exponentially
+c  Light attenuation in middle of top layer
+          atten = k0*drF(1)/2. _d 0*hFacC(i,j,1,bi,bj)
+          irr_inst(i,j,1) = irr_surf(i,j)*exp(-atten)
+
+#endif /* if BLING_USE_SHADING */
+
+C If k>1
          ELSE
 
+#ifdef PHYTO_SELF_SHADING
 c  Attenuation coefficient adjusted to chlorophyll in kth layer
           kChl_rd(i,j,k) = k0_rd + chi_rd*(chl(i,j,k,bi,bj)**e_rd)
           kChl_bg(i,j,k) = k0_bg + chi_bg*(chl(i,j,k,bi,bj)**e_bg)
@@ -295,17 +305,11 @@ c  Irradiance in middle of layer k
 
 #else
 C SW radiation attenuated exponentially
-         IF (k.eq.1) THEN
-c  Light attenuation in middle of top layer
-          atten = k0*drF(1)/2. _d 0*hFacC(i,j,1,bi,bj)
-          irr_inst(i,j,1) = irr_surf(i,j)*exp(-atten)
-         ELSE
 c  Attenuation from one more layer
           atten = k0*drF(k)/2. _d 0*hFacC(i,j,k,bi,bj)
      &           + k0*drF(k-1)/2. _d 0*hFacC(i,j,k-1,bi,bj)
           irr_inst(i,j,k) =
      &           irr_inst(i,j,k-1)*exp(-atten)
-         ENDIF
 
 #endif /* if BLING_USE_SHADING */
 
@@ -326,20 +330,20 @@ c           sat_atten = irr_inst(i,j,k)/irr_surf(i,j)
 c  Mean irradiance in the mixed layer
          IF ((-rf(k+1) .le. mld(i,j)).and.
      &               (-rf(k+1).lt.MLmix_max)) THEN
-          SumMLIrr = SumMLIrr+drF(k)*irr_inst(i,j,k)
-          tmp_ML = tmp_ML + drF(k)
-          irr_mix(i,j) = SumMLIrr/tmp_ML
+          SumMLIrr(i,j) = SumMLIrr(i,j)+drF(k)*irr_inst(i,j,k)
+          tmp_ML(i,j) = tmp_ML(i,j) + drF(k)
+          irr_mix(i,j) = SumMLIrr(i,j)/tmp_ML(i,j)
          ENDIF
 #endif
 
          ENDIF
 
-        ENDDO
 C Update diagnostic only if ~13:30 local time, when satellite observes
-        IF ( localTime.GT.chlsat_locTimWindow(1) .AND.
+         IF ( localTime.GT.chlsat_locTimWindow(1) .AND.
      &       localTime.LT.chlsat_locTimWindow(2) ) THEN
           chl_sat(i,j,bi,bj) = chl_sat_sum/(sat_atten_sum + epsln)
-        ENDIF
+         ENDIF
+        ENDDO
        ENDDO
       ENDDO
 
