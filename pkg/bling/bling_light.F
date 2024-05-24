@@ -210,6 +210,13 @@ c  instantaneous light, mixed layer averaged light
 
       DO k=1,Nr
 
+#ifdef PHYTO_SELF_SHADING
+# ifdef ALLOW_AUTODIFF_TAMC
+CADJ STORE irr_bg = comlev1_bibj, key=tkey, kind=isbyte
+CADJ STORE irr_rd = comlev1_bibj, key=tkey, kind=isbyte
+# endif /* ALLOW_AUTODIFF_TAMC */
+#endif /* PHYTO_SELF_SHADING */
+
        DO j=jmin,jmax
         DO i=imin,imax
 
@@ -255,13 +262,6 @@ C       for other grid (e.g., cartesian), assumes no difference in time
         localTime = MOD( localTime, 24. _d 0 )
         chl_sat_sum = 0. _d 0
         sat_atten_sum = 0. _d 0
-
-#ifdef PHYTO_SELF_SHADING
-# ifdef ALLOW_AUTODIFF_TAMC
-CADJ STORE irr_bg = comlev1_bibj, key=tkey, kind=isbyte
-CADJ STORE irr_rd = comlev1_bibj, key=tkey, kind=isbyte
-# endif /* ALLOW_AUTODIFF_TAMC */
-#endif /* PHYTO_SELF_SHADING */
 
 #ifdef PHYTO_SELF_SHADING
 c  Use bio-optical model of Manizza et al. (2005) to account for
