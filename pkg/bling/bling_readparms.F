@@ -108,12 +108,12 @@ C ==========================================================
      &                     k_PtoN,
      &                     k_FetoN,
 # ifdef SIZE_DEP_LIM
-      k_NO3_sm = 2.0 _d -6 / permil
-      k_NO3_lg = 6.0 _d -6 / permil
-      k_PO4_sm = 1.0 _d -8 / permil
-      k_PO4_lg = 3.0 _d -8 / permil
-      k_Fe_sm = 1.6 _d -10 / permil
-      k_Fe_lg = 4.8 _d -10 / permil
+     &                     k_NO3_sm,
+     &                     k_NO3_lg,
+     &                     k_PO4_sm,
+     &                     k_PO4_lg,
+     &                     k_Fe_sm,
+     &                     k_Fe_lg,
 # endif
      &                     PtoN_min,
      &                     PtoN_max,

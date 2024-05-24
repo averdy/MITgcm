@@ -30,8 +30,8 @@ C nutrient limitations to calculate maximum phyto growth rate
 #define MIN_NUT_LIM
 
 C Allow different phytoplankton groups to have different growth rates and
-C nutrient/light limitations. Parameters implemented have yet to be tuned.
-#undef SIZE_DEP_LIM
+C nutrient/light limitations. Parameters implemented have yet to be tuned
+#define SIZE_DEP_LIM
 
 C Assume that phytoplankton in the mixed layer experience
 C the average light over the mixed layer (as in original BLING model)
@@ -46,7 +46,7 @@ C MLD is calculated using the second derivative of rho(z)
 
 C Determine PAR from shortwave radiation Qsw;
 C otherwise determined from date and latitude
-#undef USE_QSW
+#define USE_QSW
 
 C Light absorption scheme from Manizza et al. (2005),
 C with self shading from phytoplankton
@@ -75,7 +75,7 @@ C For adjoint safe, do not call bling_dvm
 C ABIOTIC OPTIONS
 C Compile "Solvesaphe" package (Munhoven 2013) for pH/pCO2
 C  can still select Follows et al (2006) solver in data.bling,
-C  but will use solvesaphe dissociation coefficient options.
+C  but will use solvesaphe dissociation coefficient options
 #undef CARBONCHEM_SOLVESAPHE
 
 C In S/R CARBON_CHEM convert ak1 and ak2 to the total pH scale
