@@ -243,10 +243,10 @@ CADJ STORE pCO2(:,:,bi,bj) = comlev1_bibj, key = tkey, kind = isbyte
 C calculate SCHMIDT NO. for CO2
               SchmidtNoDIC(i,j) =
      &            sca1
-     &          + sca2 * theta(i,j,1,bi,bj)
-     &          + sca3 * theta(i,j,1,bi,bj)*theta(i,j,1,bi,bj)
-     &          + sca4 * theta(i,j,1,bi,bj)*theta(i,j,1,bi,bj)
-     &                *theta(i,j,1,bi,bj)
+     &          + sca2 * surftemp(i,j)
+     &          + sca3 * surftemp(i,j)*surftemp(i,j)
+     &          + sca4 * surftemp(i,j)*surftemp(i,j)
+     &                *surftemp(i,j)
 c make sure Schmidt number is not negative (will happen if temp>39C)
              SchmidtNoDIC(i,j) = max(1.0 _d -2, SchmidtNoDIC(i,j))
 
@@ -292,8 +292,8 @@ C calculate SCHMIDT NO. for O2
         DO j=jmin,jmax
           DO i=imin,imax
             IF (maskC(i,j,1,bi,bj).NE.0.) THEN
-              ttemp = theta(i,j,1,bi,bj)
-              stemp = salt(i,j,1,bi,bj)
+              ttemp = surftemp(i,j)
+              stemp = surfsalt(i,j)
 
               SchmidtNoO2(i,j) =
      &            sox1

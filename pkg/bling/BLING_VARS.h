@@ -86,7 +86,6 @@ C     =1 :: use the GENERAL solver ;  =2 :: use SEC solver ;
 C     =3 :: use FAST solver routine.
 
        COMMON /CARBONCHEM_SOLVESAPHE_ARIANE/
-cav     &                     cat, akn, akhs, aphscale, Ksp_TP_Arag,
      &                     cat, akn, akhs, aphscale,
      &                     at_maxniter,
      &                     selectBTconst,selectFTconst,
@@ -97,7 +96,6 @@ cav     &                     cat, akn, akhs, aphscale, Ksp_TP_Arag,
       _RL  akn(1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
       _RL  akhs(1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
       _RL  aphscale(1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
-cav      _RL  Ksp_TP_Arag(1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
 
       INTEGER at_maxniter
       INTEGER selectBTconst

@@ -75,8 +75,10 @@ C--   Now calculate whether it is time to update the forcing arrays
        ENDIF
 
 #ifdef ALLOW_OFFLINE
-       IF ( useOffLine ) THEN
-         CALL OFFLINE_FIELDS_LOAD( startTime, nIter0, myThid )
+       IF ( periodicExternalForcing ) THEN
+         IF ( useOffLine ) THEN
+           CALL OFFLINE_FIELDS_LOAD( startTime, nIter0, myThid )
+         ENDIF
        ENDIF
 #endif
 

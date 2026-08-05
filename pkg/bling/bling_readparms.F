@@ -603,21 +603,30 @@ C OCMIP2 Coefficients from S/R CARBON_COEFFS in CARBON_CHEM.F
       IF ( selectHFconst.GT.2 .OR. selectBTconst.GT.2
      & .OR. selectFTconst.GT.2 ) THEN
         WRITE(msgBuf,'(A)')
-     &    'BLING_READPARMS: selectHF, selectBT or selectFT > 2'
+     &    'BLING_READPARMS: selectHF, selectBT or selectFT > 2, '
+     &    'solvesaphe_const error'
         CALL PRINT_ERROR( msgBuf, myThid )
-        STOP 'ABNORMAL END: S/R BLING_READPARMS: solvesaphe_const error'
+        errCount = errCount + 1
       ELSEIF ( selectK1K2const.GT.6 ) THEN
         WRITE(msgBuf,'(A)')
-     &    'BLING_READPARMS: selectK1K2const > 6 '
+     &    'BLING_READPARMS: selectK1K2const > 6, solvesaphe_const error '
         CALL PRINT_ERROR( msgBuf, myThid )
-        STOP 'ABNORMAL END: S/R BLING_READPARMS: solvesaphe_const error'
+        errCount = errCount + 1
       ELSEIF ( selectPHsolver.GT.3 ) THEN
         WRITE(msgBuf,'(A)')
-     &    'BLING_READPARMS: selectPHsolver > 3 '
+     &    'BLING_READPARMS: selectPHsolver > 3, select pH solver error '
         CALL PRINT_ERROR( msgBuf, myThid )
-        STOP 'ABNORMAL END: S/R BLING_READPARMS: select pH solver error'
+        errCount = errCount + 1
       ENDIF
 #endif
+
+      IF ( errCount.GE.1 ) THEN
+        WRITE(msgBuf,'(A,I3,A)')
+     &    'BLING_READPARMS: detected', errCount,' fatal error(s)'
+        CALL PRINT_ERROR( msgBuf, myThid )
+        CALL ALL_PROC_DIE( 0 )
+        STOP 'ABNORMAL END: S/R BLING_READPARMS'
+      ENDIF
 
       _END_MASTER(myThid)
 
