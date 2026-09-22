@@ -448,17 +448,6 @@ cmick - now estimate carbonate alkalinity
         cag = ta - bohg - (kwlocal/hguess) + hguess
      &           - hpo4g - 2.0 _d 0*po4g + h3po4g
      &           - siooh3g
-#ifdef ALLOW_BLING
-CMM(
-        IF ( cag .LT. (0.1 _d 0*ta) )  THEN
-       print *,'CMMcag1', cag,i,j,k,xC(i,j,1,1),yC(i,j,1,1)
-C myXGlobalLo-1+(bi-1)*sNx+i,        myYGlobalLo-1+(bj-1)*sNy+j
-       print *,'CMMcag2',ta,bohg,(kwlocal/hguess),hguess,hpo4g,
-     &           2.0 _d 0*po4g,h3po4g, siooh3g
-       cag = 0.1 _d 0*ta
-        ENDIF
-CMM)
-#endif
 cmick - now evaluate better guess of hydrogen ion conc
 cmick   htotal = [H+], hydrogen ion conc
         gamm  = diclocal/cag
@@ -466,16 +455,12 @@ cmick   htotal = [H+], hydrogen ion conc
      &          - 4.0 _d 0*k1local*k2local*(1.0 _d 0-2.0 _d 0*gamm)
         hnew  = 0.5 _d 0*( (gamm-1.0 _d 0)*k1local + sqrt(stuff) )
 #ifdef ALLOW_BLING
-CMM(
         IF ( hnew .GT. (0.00001 _d 0) )  THEN
-cmm          print *,'CMMhnew reset:',hnew,i,j,k,xC(i,j,1,1),yC(i,j,1,1)
           hnew = 0.00000001 _d 0
         ENDIF
         IF ( hnew .LT. (0.0000000001 _d 0) )  THEN
-cmm          print *,'CMMhnew reset:',hnew,i,j,k,xC(i,j,1,1),yC(i,j,1,1)
           hnew = 0.00000001 _d 0
         ENDIF
-CMM)
 #endif
 cmick - now determine [CO2*]
         co2s  = diclocal/
